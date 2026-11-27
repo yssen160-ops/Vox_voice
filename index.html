@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voxa Gateway Test</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-2: #0b1220;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --accent: #38bdf8;
+      --accent-2: #0284c7;
+      --success: #22c55e;
+      --warn: #f59e0b;
+      --error: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 16px;
+    }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 1.4rem;
+    }
+    .notice {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #fde68a;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.92rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: grid;
+      gap: 12px;
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 1.08rem;
+      color: var(--accent);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 720px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    textarea {
+      min-height: 115px;
+      resize: vertical;
+    }
+    button {
+      cursor: pointer;
+      background: var(--accent-2);
+      border-color: var(--accent);
+      font-weight: 600;
+      transition: opacity 0.15s ease;
+    }
+    button:hover { opacity: 0.92; }
+    button.secondary {
+      background: #1e293b;
+      border-color: #475569;
+      font-weight: 500;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn-row > button {
+      flex: 1 1 180px;
+    }
+    .voice-picker-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    @media (min-width: 640px) {
+      .voice-picker-list { grid-template-columns: 1fr 1fr; }
+    }
+    .voice-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: rgba(30, 41, 59, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+    }
+    .voice-item input[type="checkbox"] {
+      width: auto;
+      margin-top: 4px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      margin-right: 4px;
+    }
+    .badge-warn {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+    .status-box {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      font-size: 0.92rem;
+      word-break: break-word;
+    }
+    .st-ok { border-color: var(--success); color: #86efac; }
+    .st-warn { border-color: var(--warn); color: #fde68a; }
+    .st-err { border-color: var(--error); color: #fca5a5; }
+    .speakers-preview, .pkg-box {
+      background: var(--card-2);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .speakers-preview ul, .pkg-box ul {
+      margin: 6px 0 0;
+      padding-right: 18px;
+    }
+    .log {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 250px;
+      overflow-y: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    a.action-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Voxa Gateway Test</h1>
+      <div class="hint">واجهة اختبار بوابة Voxa عبر Cloudflare Worker مع اختيار أصوات محددة وتحديد الحزم الضرورية فقط لها.</div>
+    </header>
+
+    <div class="notice">
+      <strong>تنبيه فني:</strong> Voxa هي المزود الوحيد. نقطة النهاية <code>/v1/play</code> تعيد رابط مشغل (<code>player_url</code>) يعتمد على المتصفح عند التشغيل ولا تعيد ملفاً صوتياً جاهزاً من الخادم، كما لا يتم تشغيل محركات صوتية في هذه الواجهة.
+    </div>
+
+    <section class="card">
+      <h2>1. إعدادات الاتصال بالبوابة</h2>
+      <div class="grid-2">
+        <div>
+          <label for="gatewayUrl">رابط Cloudflare Worker</label>
+          <input id="gatewayUrl" type="url" value="https://voxa-gateway.z0117050381.workers.dev" />
+        </div>
+        <div>
+          <label for="projectKey">مفتاح المشروع (للجلسة الحالية فقط)</label>
+          <input id="projectKey" type="password" placeholder="أدخل مفتاح المشروع لاختبار الجلسة" autocomplete="off" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="secondary" id="loadVoicesBtn">جلب الأصوات (/api/voices)</button>
+        <button type="button" class="secondary" id="clearKeyBtn">مسح المفتاح من الذاكرة</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. اختيار أصوات محددة وتحديد الحزم الضرورية فقط</h2>
+      <div class="hint">اختر الأصوات المطلوبة فقط بعد جلب القائمة من <code>/api/voices</code> لتحديد متطلباتها وحزمها المرتبطة دون تحميل كل شيء.</div>
+      <div class="voice-picker-list" id="voiceCheckboxList">
+        <div class="hint">اضغط على "جلب الأصوات (/api/voices)" لعرض الأصوات المتاحة.</div>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="secondary" id="selectAllVoicesBtn">تحديد الكل</button>
+        <button type="button" class="secondary" id="clearSelectedVoicesBtn">إلغاء تحديد الأصوات</button>
+        <button type="button" class="secondary" id="buildPackagesBtn">تحديد الحزم الضرورية فقط</button>
+      </div>
+      <div class="pkg-box" id="packagesOutput">
+        لم يتم تحديد حزم بعد. اختر صوتاً أو أكثر ثم اضغط على "تحديد الحزم الضرورية فقط".
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3. إعداد النص والمتحدثين والتوليد</h2>
+      <div class="grid-2">
+        <div>
+          <label for="titleInput">عنوان التسجيل</label>
+          <input id="titleInput" type="text" value="اختبار صوت عربي عبر Voxa" />
+        </div>
+        <div>
+          <label for="styleInput">نمط الصوت (Style)</label>
+          <select id="styleInput">
+            <option value="expressive">expressive</option>
+            <option value="neutral">neutral</option>
+            <option value="calm">calm</option>
+            <option value="energetic">energetic</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label for="voiceSelect">الصوت المرسل في الطلب (قد يتجاهله /v1/play)</label>
+          <select id="voiceSelect">
+            <option value="">— افتراضي (بدون تحديد صوت) —</option>
+          </select>
+          <div class="hint" id="voiceMeta">لم يتم اختيار صوت محدد بعد.</div>
+        </div>
+        <div>
+          <label for="defaultSpeaker">اسم المتحدث الافتراضي عند التقسيم</label>
+          <input id="defaultSpeaker" type="text" value="Mohamed" />
+        </div>
+      </div>
+
+      <div>
+        <label for="scriptInput">النص العربي</label>
+        <textarea id="scriptInput">Mohamed: مرحباً بكم. هذا اختبار للنصوص العربية عبر بوابة Voxa.</textarea>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="secondary" id="splitBtn">تقسيم النص إلى متحدثين</button>
+        <button type="button" id="generateBtn">توليد الصوت</button>
+      </div>
+
+      <div class="speakers-preview" id="speakersPreview">
+        معاينة المتحدثين والأسطر ستظهر هنا عند الضغط على "تقسيم النص إلى متحدثين".
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>4. حالة الطلب والنتيجة</h2>
+      <div class="status-box" id="statusBox">الحالة: بانتظار أمر.</div>
+      <div id="resultBox"></div>
+    </section>
+
+    <section class="card">
+      <h2>5. سجل الطلبات والأخطاء</h2>
+      <div class="btn-row">
+        <button type="button" class="secondary" id="clearLogBtn">مسح السجل</button>
+      </div>
+      <div class="log" id="logBox"></div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      sessionKey: '',
+      voices: [],
+      selectedIds: new Set()
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function addLog(level, message, details = null) {
+      const time = new Date().toLocaleTimeString('ar-EG');
+      const extra = details ? '\n' + (typeof details === 'string' ? details : JSON.stringify(details, null, 2)) : '';
+      const line = `[${time}] [${level}] ${message}${extra}\n----------------------------------------\n`;
+      $('logBox').textContent = line + $('logBox').textContent;
+    }
+
+    function setStatus(type, text) {
+      const box = $('statusBox');
+      box.className = 'status-box ' + (type ? `st-${type}` : '');
+      box.textContent = 'الحالة: ' + text;
+    }
+
+    function getAuthHeaders() {
+      const key = $('projectKey').value.trim() || state.sessionKey;
+      state.sessionKey = key;
+      const headers = { 'Content-Type': 'application/json' };
+      if (key) headers['Authorization'] = `Bearer ${key}`;
+      return headers;
+    }
+
+    function getVoiceId(v) {
+      return v.id || v.voice || v.name || '';
+    }
+
+    function extractVoiceList(data) {
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.voices)) return data.voices;
+      if (data && data.lite && Array.isArray(data.lite.voices)) return data.lite.voices;
+      return [];
+    }
+
+    function inferVoiceRequirements(v) {
+      const id = getVoiceId(v).toLowerCase();
+      const engine = String(v.engine || '').toLowerCase();
+      const isZonos = engine.includes('zonos') || id.includes('-zo-');
+      const urls = [];
+      for (const k of ['url', 'engine_url', 'model_url', 'download_url', 'preview_url']) {
+        if (typeof v[k] === 'string' && v[k].startsWith('http')) {
+          urls.push({ label: k, url: v[k] });
+        }
+      }
+      return {
+        engineName: v.engine || (isZonos ? 'zonos' : 'supertonic'),
+        needsWebGpuOrDesktop: isZonos,
+        urls
+      };
+    }
+
+    function renderVoicePickers() {
+      const listEl = $('voiceCheckboxList');
+      const selectEl = $('voiceSelect');
+      const prevSelectVal = selectEl.value;
+
+      selectEl.innerHTML = '<option value="">— افتراضي (بدون تحديد صوت) —</option>';
+
+      if (!state.voices.length) {
+        listEl.innerHTML = '<div class="hint">لا توجد أصوات معروضة حالياً.</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      for (const v of state.voices) {
+        const id = getVoiceId(v);
+        if (!id) continue;
+        const req = inferVoiceRequirements(v);
+        const checked = state.selectedIds.has(id) ? 'checked' : '';
+
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = `${id} [${req.engineName}]`;
+        opt.dataset.engine = req.engineName;
+        selectEl.appendChild(opt);
+
+        const row = document.createElement('label');
+        row.className = 'voice-item';
+        row.innerHTML = `
+          <input type="checkbox" class="voice-chk" value="${escapeHtml(id)}" ${checked} />
+          <div>
+            <div><strong>${escapeHtml(id)}</strong> <span class="badge">${escapeHtml(req.engineName)}</span>${req.needsWebGpuOrDesktop ? '<span class="badge badge-warn">WebGPU / سطح مكتب</span>' : ''}</div>
+            <div class="hint">${escapeHtml(v.description || v.language || '')}</div>
+          </div>
+        `;
+        row.querySelector('input').addEventListener('change', (ev) => {
+          if (ev.target.checked) state.selectedIds.add(id);
+          else state.selectedIds.delete(id);
+        });
+        listEl.appendChild(row);
+      }
+
+      if (prevSelectVal) selectEl.value = prevSelectVal;
+      updateVoiceMeta();
+    }
+
+    function buildRequiredPackages() {
+      const chosen = state.voices.filter((v) => state.selectedIds.has(getVoiceId(v)));
+      if (!chosen.length) {
+        $('packagesOutput').innerHTML = 'لم تختر أي صوت من القائمة أعلاه.';
+        return;
+      }
+
+      const engines = new Set();
+      const extraUrls = [];
+      let anyWebGpu = false;
+
+      const itemsHtml = chosen.map((v) => {
+        const id = getVoiceId(v);
+        const req = inferVoiceRequirements(v);
+        engines.add(req.engineName);
+        if (req.needsWebGpuOrDesktop) anyWebGpu = true;
+        for (const u of req.urls) extraUrls.push({ voice: id, ...u });
+        return `<li><strong>${escapeHtml(id)}</strong> — المحرك: <code>${escapeHtml(req.engineName)}</code>${req.needsWebGpuOrDesktop ? ' (يتطلب WebGPU / جهاز سطح مكتب)' : ' (لا يتطلب WebGPU)'}</li>`;
+      }).join('');
+
+      const urlsHtml = extraUrls.length
+        ? `<div><strong>روابط/ملفات وردت في بيانات الأصوات المختارة فقط:</strong><ul>${extraUrls.map((u) => `<li>${escapeHtml(u.voice)} (${escapeHtml(u.label)}): <a class="action-link" href="${escapeHtml(u.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(u.url)}</a></li>`).join('')}</ul></div>`
+        : '<div class="hint">لم ترد روابط تنزيل خارجية مباشرة في بيانات هذه الأصوات من /api/voices.</div>';
+
+      $('packagesOutput').innerHTML = `
+        <div><strong>الأصوات المختارة (${chosen.length}):</strong><ul>${itemsHtml}</ul></div>
+        <div style="margin-top:8px;"><strong>المحركات المطلوبة فقط:</strong> <code>${escapeHtml([...engines].join(', '))}</code></div>
+        <div class="hint" style="margin-top:4px;">${anyWebGpu ? 'تنبيه: أحد الأصوات المختارة يعتمد على Zonos/WebGPU وقد لا يعمل على متصفح الهاتف.' : 'الأصوات المختارة لا تتطلب WebGPU.'}</div>
+        <div style="margin-top:8px;">${urlsHtml}</div>
+      `;
+
+      addLog('INFO', 'تم تحديد الحزم الضرورية للأصوات المختارة فقط', {
+        selectedVoices: chosen.map(getVoiceId),
+        engines: [...engines],
+        requiresWebGpuOrDesktop: anyWebGpu,
+        urls: extraUrls
+      });
+    }
+
+    async function loadVoices() {
+      const baseUrl = $('gatewayUrl').value.trim().replace(/\/+$/, '');
+      if (!baseUrl) {
+        setStatus('err', 'يرجى إدخال رابط Cloudflare Worker.');
+        return;
+      }
+      setStatus('warn', 'جاري جلب قائمة الأصوات من /api/voices...');
+      try {
+        const res = await fetch(`${baseUrl}/api/voices`, {
+          method: 'GET',
+          headers: getAuthHeaders()
+        });
+        const text = await res.text();
+        let json = null;
+        try { json = JSON.parse(text); } catch {}
+
+        if (!res.ok) {
+          setStatus('err', `فشل جلب الأصوات (HTTP ${res.status})`);
+          addLog('ERROR', `GET /api/voices -> HTTP ${res.status}`, json || text);
+          return;
+        }
+
+        const list = extractVoiceList(json);
+        state.voices = list;
+        renderVoicePickers();
+        setStatus('ok', `تم جلب ${list.length} صوتاً بنجاح.`);
+        addLog('INFO', `GET /api/voices -> HTTP ${res.status} (${list.length} voices)`);
+      } catch (err) {
+        setStatus('err', 'تعذر الاتصال بالبوابة.');
+        addLog('ERROR', 'فشل طلب /api/voices', String(err));
+      }
+    }
+
+    function updateVoiceMeta() {
+      const selected = $('voiceSelect').selectedOptions[0];
+      if (!selected || !selected.value) {
+        $('voiceMeta').textContent = 'لم يتم اختيار صوت محدد (سيُستخدم سلوك Voxa الافتراضي).';
+        return;
+      }
+      const engine = (selected.dataset.engine || '').toLowerCase();
+      if (engine.includes('zonos')) {
+        $('voiceMeta').textContent = 'تنبيه: أصوات Zonos تتطلب جهاز كمبيوتر يدعم WebGPU، وقد يتجاهل /v1/play اختيار الصوت.';
+      } else {
+        $('voiceMeta').textContent = `الصوت المحدد: ${selected.value} (ملاحظة: /v1/play قد يتجاهل اختيار الصوت).`;
+      }
+    }
+
+    function parseSpeakers(rawText, fallbackSpeaker) {
+      const lines = rawText
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      return lines.map((line, idx) => {
+        const colonIdx = line.indexOf(':');
+        if (colonIdx > 0 && colonIdx < 30) {
+          const speaker = line.slice(0, colonIdx).trim();
+          const text = line.slice(colonIdx + 1).trim();
+          return { index: idx + 1, speaker: speaker || fallbackSpeaker, text };
+        }
+        return { index: idx + 1, speaker: fallbackSpeaker || 'Speaker', text: line };
+      });
+    }
+
+    function renderSpeakersPreview() {
+      const fallback = $('defaultSpeaker').value.trim() || 'Mohamed';
+      const parsed = parseSpeakers($('scriptInput').value, fallback);
+      if (!parsed.length) {
+        $('speakersPreview').innerHTML = 'لا يوجد نص للتقسيم.';
+        return parsed;
+      }
+      const items = parsed
+        .map((item) => `<li><strong>${escapeHtml(item.speaker)}:</strong> ${escapeHtml(item.text)}</li>`)
+        .join('');
+      $('speakersPreview').innerHTML = `<div>عدد الأسطر المقسمة: ${parsed.length}</div><ul>${items}</ul>`;
+      return parsed;
+    }
+
+    async function generateAudio() {
+      const baseUrl = $('gatewayUrl').value.trim().replace(/\/+$/, '');
+      const title = $('titleInput').value.trim() || 'Voxa Test';
+      const style = $('styleInput').value;
+      const voice = $('voiceSelect').value;
+      const fallbackSpeaker = $('defaultSpeaker').value.trim() || 'Mohamed';
+      const parsed = parseSpeakers($('scriptInput').value, fallbackSpeaker);
+
+      if (!parsed.length) {
+        setStatus('err', 'يرجى إدخال نص عربي أولاً.');
+        return;
+      }
+
+      const formattedScript = parsed.map((p) => `${p.speaker}: ${p.text}`).join('\n');
+      const payload = {
+        title,
+        script: formattedScript,
+        style
+      };
+      if (voice) {
+        payload.voice = voice;
+      }
+
+      setStatus('warn', 'جاري إرسال طلب التوليد إلى /api/play...');
+      $('resultBox').innerHTML = '';
+
+      try {
+        const res = await fetch(`${baseUrl}/api/play`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+        const text = await res.text();
+        let data = null;
+        try { data = JSON.parse(text); } catch {}
+
+        if (!res.ok) {
+          setStatus('err', `فشل توليد الصوت (HTTP ${res.status})`);
+          addLog('ERROR', `POST /api/play -> HTTP ${res.status}`, data || text);
+          return;
+        }
+
+        setStatus('ok', `تم استلام الاستجابة بنجاح (HTTP ${res.status}).`);
+        addLog('INFO', `POST /api/play -> HTTP ${res.status}`, data || text);
+
+        const playerUrl = data && data.player_url ? data.player_url : '';
+        const note = data && data.note ? data.note : '';
+
+        $('resultBox').innerHTML = `
+          <div class="status-box">
+            <div><strong>العنوان:</strong> ${escapeHtml((data && data.title) || title)}</div>
+            <div><strong>عدد الأسطر:</strong> ${escapeHtml((data && data.lines) ?? parsed.length)}</div>
+            ${note ? `<div class="hint"><strong>ملاحظة Voxa:</strong> ${escapeHtml(note)}</div>` : ''}
+            ${
+              playerUrl
+                ? `<a class="action-link" href="${escapeHtml(playerUrl)}" target="_blank" rel="noopener noreferrer">فتح رابط المشغل (player_url)</a>`
+                : '<div class="hint">لم يَعُد رابط player_url في الاستجابة.</div>'
+            }
+          </div>
+        `;
+      } catch (err) {
+        setStatus('err', 'حدث خطأ أثناء الاتصال بـ /api/play.');
+        addLog('ERROR', 'فشل طلب /api/play', String(err));
+      }
+    }
+
+    $('loadVoicesBtn').addEventListener('click', loadVoices);
+    $('clearKeyBtn').addEventListener('click', () => {
+      $('projectKey').value = '';
+      state.sessionKey = '';
+      setStatus('', 'تم مسح مفتاح الجلسة من الذاكرة.');
+    });
+    $('selectAllVoicesBtn').addEventListener('click', () => {
+      state.selectedIds = new Set(state.voices.map(getVoiceId).filter(Boolean));
+      renderVoicePickers();
+    });
+    $('clearSelectedVoicesBtn').addEventListener('click', () => {
+      state.selectedIds.clear();
+      renderVoicePickers();
+      $('packagesOutput').innerHTML = 'تم إلغاء تحديد الأصوات.';
+    });
+    $('buildPackagesBtn').addEventListener('click', buildRequiredPackages);
+    $('voiceSelect').addEventListener('change', updateVoiceMeta);
+    $('splitBtn').addEventListener('click', renderSpeakersPreview);
+    $('generateBtn').addEventListener('click', generateAudio);
+    $('clearLogBtn').addEventListener('click', () => { $('logBox').textContent = ''; });
+
+    renderSpeakersPreview();
+  </script>
+</body>
+</html>
