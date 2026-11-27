@@ -361,8 +361,12 @@
 
     function inferVoiceRequirements(v) {
       const id = getVoiceId(v).toLowerCase();
-      const engine = String(v.engine || '').toLowerCase();
+      const engine = [v.engine, v.provider, v.model, v.model_name, id]
+        .filter((value) => typeof value === 'string')
+        .join(' ')
+        .toLowerCase();
       const isZonos = engine.includes('zonos') || id.includes('-zo-');
+      const isSupertonic = engine.includes('supertonic');
       const urls = [];
       for (const k of ['url', 'engine_url', 'model_url', 'download_url', 'preview_url']) {
         if (typeof v[k] === 'string' && v[k].startsWith('http')) {
@@ -370,8 +374,9 @@
         }
       }
       return {
-        engineName: v.engine || (isZonos ? 'zonos' : 'supertonic'),
+        engineName: isZonos ? 'Zonos' : isSupertonic ? 'Supertonic' : (v.engine || 'غير محدد'),
         needsWebGpuOrDesktop: isZonos,
+        engineKnown: isZonos || isSupertonic,
         urls
       };
     }
@@ -399,6 +404,7 @@
         opt.value = id;
         opt.textContent = `${id} [${req.engineName}]`;
         opt.dataset.engine = req.engineName;
+        opt.dataset.engineKnown = String(req.engineKnown);
         selectEl.appendChild(opt);
 
         const row = document.createElement('label');
@@ -438,7 +444,7 @@
         engines.add(req.engineName);
         if (req.needsWebGpuOrDesktop) anyWebGpu = true;
         for (const u of req.urls) extraUrls.push({ voice: id, ...u });
-        return `<li><strong>${escapeHtml(id)}</strong> — المحرك: <code>${escapeHtml(req.engineName)}</code>${req.needsWebGpuOrDesktop ? ' (يتطلب WebGPU / جهاز سطح مكتب)' : ' (لا يتطلب WebGPU)'}</li>`;
+        return `<li><strong>${escapeHtml(id)}</strong> — المحرك: <code>${escapeHtml(req.engineName)}</code>${req.needsWebGpuOrDesktop ? ' (يتطلب WebGPU / جهاز سطح مكتب)' : req.engineKnown ? ' (لا يتطلب WebGPU)' : ' (تحقق من متطلبات المحرك؛ النوع غير مؤكد)'}</li>`;
       }).join('');
 
       const urlsHtml = extraUrls.length
@@ -448,7 +454,7 @@
       $('packagesOutput').innerHTML = `
         <div><strong>الأصوات المختارة (${chosen.length}):</strong><ul>${itemsHtml}</ul></div>
         <div style="margin-top:8px;"><strong>المحركات المطلوبة فقط:</strong> <code>${escapeHtml([...engines].join(', '))}</code></div>
-        <div class="hint" style="margin-top:4px;">${anyWebGpu ? 'تنبيه: أحد الأصوات المختارة يعتمد على Zonos/WebGPU وقد لا يعمل على متصفح الهاتف.' : 'الأصوات المختارة لا تتطلب WebGPU.'}</div>
+        <div class="hint" style="margin-top:4px;">${anyWebGpu ? 'تنبيه: أحد الأصوات المختارة يعتمد على Zonos/WebGPU وقد لا يعمل على متصفح الهاتف.' : chosen.some((v) => !inferVoiceRequirements(v).engineKnown) ? 'لم تذكر بيانات بعض الأصوات محركها؛ تحقق من متطلباتها قبل الاستخدام.' : 'أصوات Supertonic المختارة لا تتطلب WebGPU.'}</div>
         <div style="margin-top:8px;">${urlsHtml}</div>
       `;
 
@@ -499,11 +505,12 @@
         $('voiceMeta').textContent = 'لم يتم اختيار صوت محدد (سيُستخدم سلوك Voxa الافتراضي).';
         return;
       }
-      const engine = (selected.dataset.engine || '').toLowerCase();
-      if (engine.includes('zonos')) {
+      if (selected.dataset.engine === 'Zonos') {
         $('voiceMeta').textContent = 'تنبيه: أصوات Zonos تتطلب جهاز كمبيوتر يدعم WebGPU، وقد يتجاهل /v1/play اختيار الصوت.';
+      } else if (selected.dataset.engineKnown !== 'true') {
+        $('voiceMeta').textContent = 'لم تحدد بيانات الصوت المحرك أو متطلباته؛ تحقق منها قبل الاستخدام.';
       } else {
-        $('voiceMeta').textContent = `الصوت المحدد: ${selected.value} (ملاحظة: /v1/play قد يتجاهل اختيار الصوت).`;
+        $('voiceMeta').textContent = `الصوت المحدد: ${selected.value} (${selected.dataset.engine}، لا يتطلب WebGPU؛ قد يتجاهل /v1/play اختيار الصوت).`;
       }
     }
 
